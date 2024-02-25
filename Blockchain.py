@@ -6,6 +6,7 @@ import random
 
 
 
+
 class Block:
     def __init__(self, index: int, timestamp: str, data: str, previousHash: str):
         self.index = index
@@ -26,8 +27,8 @@ class Block:
                        str(self.previousHash).encode('utf-8') +
                        str(nonce).encode('utf-8'))
             
-            # if sha.hexdigest()[:difficulty] == self.previousHash[-difficulty:]:
-            if sha.hexdigest()[:difficulty] == '0' * difficulty:
+            if sha.hexdigest()[:difficulty] == self.previousHash[-difficulty:]:
+            # if sha.hexdigest()[:difficulty] == '0' * difficulty:
                 self.hash = sha.hexdigest()
                 return nonce
             else:
