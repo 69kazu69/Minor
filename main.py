@@ -1,6 +1,5 @@
 from Blockchain import Blockchain
 from flask import Flask, jsonify, request
-import os
 
 app = Flask(__name__)
 
