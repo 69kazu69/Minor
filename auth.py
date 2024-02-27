@@ -2,6 +2,7 @@ import sqlite3, requests, getpass, hashlib, os
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from Blockchain import Blockchain
 
 DB_PATH = 'DB/keys_database.db'
 
@@ -13,7 +14,6 @@ def hash_password(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
 
 def generate_rsa_key():
-    # Generate RSA key pair
     private_key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
@@ -169,7 +169,7 @@ def decrypt_message(private_key, encrypted_message):
         print("Decryption failed:", e)
         return None
 
-def sign_up() -> int:
+def sign_up():
     email_id = input("Enter user identification: ")
     password = getpass.getpass(f"Enter password to encrypt the key pair for user '{email_id}': ")
     repass = getpass.getpass(f"Re-Enter password to confirm: ")
@@ -200,29 +200,54 @@ def sign_in():
 
     return 'login successful'
 
-
-def display_table():
+def authenticate_sign(data, sign, public_key):
     try:
-        # Connect to SQLite database
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-
-        # Execute SQL query to select all rows from the table
-        cursor.execute("SELECT * FROM keys")
-
-        # Fetch all rows
-        rows = cursor.fetchall()
-
-        # Print column headers
-        print("User ID\tPrivate Key\t\t\t\tPublic Key")
-        print("-" * 80)
-
-        # Print each row
-        for row in rows:
-            print(row[0], "\t", row[1], "\t", row[2], "\t", row[3], "\t", row[4])
-
-        # Close connection
-        conn.close()
+        public_key.verify(
+            sign,
+            data.encode('utf-8'),
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        return True
     except Exception as e:
-        print("Error displaying table:", e)
-display_table()
+        return False
+
+def polling(data, sign, public_key, private_key):
+    if authenticate_sign(data, sign, public_key):
+        data = decrypt_message(private_key, data)
+
+
+
+
+
+
+
+
+# def display_table():
+#     try:
+#         # Connect to SQLite database
+#         conn = sqlite3.connect(DB_PATH)
+#         cursor = conn.cursor()
+
+#         # Execute SQL query to select all rows from the table
+#         cursor.execute("SELECT * FROM keys")
+
+#         # Fetch all rows
+#         rows = cursor.fetchall()
+
+#         # Print column headers
+#         print("User ID\tPrivate Key\t\t\t\tPublic Key")
+#         print("-" * 80)
+
+#         # Print each row
+#         for row in rows:
+#             print(row[0], "\t", row[1], "\t", row[2], "\t", row[3], "\t", row[4])
+
+#         # Close connection
+#         conn.close()
+#     except Exception as e:
+#         print("Error displaying table:", e)
+# # display_table()
